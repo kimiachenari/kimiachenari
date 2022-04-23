@@ -3,7 +3,7 @@
 """
 
 """
-Land Surface Temperature Visualization Using Google Earth Engine.
+Land Surface Temperature Visualization + Exporting data Using Google Earth Engine.
 """
 
 // Get brightness temperature data 
@@ -80,6 +80,7 @@ var finalNDVI = temperature.map(pointsmean).flatten()
 .select(['date', 'mean'])
 print(finalNDVI.limit(100), 'final NDVI')
 
+//Export data as CSV file
 Export.table.toDrive({
 collection: finalNDVI,
   description: 'NDVI'+startdate+'TO'+enddate,
@@ -113,7 +114,7 @@ maxPixels: 1e9
 print(max, 'min')
 }
 
-
+//Export image
 Export.image.toDrive({
   image: LST,
   description: 'LST',
