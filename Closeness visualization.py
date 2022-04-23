@@ -12,7 +12,7 @@ import matplotlib as mpl
 import contextily
 from matplotlib_scalebar.scalebar import ScaleBar
 
-#Getting the data from OSMnx 
+#Getting the region of interest's data from OSMnx 
 streets_graph = ox.graph_from_place('District 6, Mashhad, Iran', network_type='drive')
 streets_graph = ox.projection.project_graph(streets_graph)
 
@@ -36,7 +36,6 @@ nodes.plot(ax=ax, column='closeness400', cmap='Spectral_r', scheme='quantiles', 
 ax.set_axis_off()
 ax.set_title('closeness400')
 plt.show()
-#"fisherjenkssampled"
 ax = nodes.plot(
     "closeness400", 
     scheme="fisherjenkssampled",
@@ -63,4 +62,4 @@ scalebar = ScaleBar(
     font_properties={"size": 12},
 )
 ax.add_artist(scalebar)
-#ax.set_title("closeness");
+ax.set_title("closeness");
