@@ -1,7 +1,9 @@
 """
-Created on Wed Apr 2022
+(G-mail: kimia.chenaari@gmail.com)
+"""
 
-@author: Kimia Chenari (kimia.chenaari@gmail.com)
+"""
+Street Straightness-centrality Visualization Using Momepy library. for more information visit http://docs.momepy.org/.
 """
 #import necessary Python Libraries
 import geopandas as gpd
