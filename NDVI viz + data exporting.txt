@@ -22,9 +22,6 @@ var dataset = ee.ImageCollection('LANDSAT/LC08/C01/T1_TOA')
                   .filterBounds(geometry)
                   .map(maskL8);
 
-
-
-
 //RGB visualization
 
 var visParams = {
@@ -84,9 +81,6 @@ var ndviWithCount = withNDVI.map(function(image){
 
 print(ndviWithCount, 'ndviWithCount');
 
-
-
-
 //filter between a range
 var filter = ndviWithCount.filter(ee.Filter.rangeContains(
           'count', 220000, 446224))
@@ -107,11 +101,7 @@ for (var i in OrderList) {
 
 
 Map.addLayer(image, NDVIcolor, i);
-
-
-
  }
-
 
 print(ui.Chart.image.series(filter, geometry, ee.Reducer.mean(), 30));
 print(ui.Chart.image.series(withNDVI, geometry, ee.Reducer.max(), 30));
@@ -267,5 +257,3 @@ Export.table.toDrive({
   folder: 'Genus_Exchange_GEE_Data',
   fileFormat: 'CSV',
 })
-
-
