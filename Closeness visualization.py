@@ -1,7 +1,7 @@
 """
 Created on Wed Apr 2022
 
-@author: Kimia Chenary (kimia.chenaari@gmail.com)
+@author: Kimia Chenari (kimia.chenaari@gmail.com)
 """
 #import necessary Python Libraries
 import geopandas as gpd
