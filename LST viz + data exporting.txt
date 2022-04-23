@@ -1,0 +1,115 @@
+
+// Get brightness temperature data for 1 year.
+var landsat8Toa = ee.ImageCollection('LANDSAT/LC08/C01/T1_TOA');
+var temperature = landsat8Toa.filterBounds(geometry2)
+    .select(['B10'], ['temp'])
+    .map(function(image) {
+      // Kelvin to Celsius.
+      return image.subtract(273.15)
+          .set('system:time_start', image.get('system:time_start'));
+    });
+var clippedCol=temperature.map(function(im){ 
+  return im.clip(geometry);
+});
+// Calculate bands for seasonal temperatures and elevations; composite into
+// a single image.
+
+var LST = clippedCol.filterDate('2013-01-01', '2021-12-30')
+    .reduce(ee.Reducer.mean())
+    .select([0], ['winter']);
+
+
+Map.addLayer(LST,{min: -5, max:45, palette: [
+'040274', '040281', '0502a3', '0502b8', '0502ce', '0502e6',
+'0602ff', '235cb1', '307ef3', '269db1', '30c8e2', '32d3ef',
+'3be285', '3ff38f', '86e26f', '3ae237', 'b5e22e', 'd6e21f',
+'fff705', 'ffd611', 'ffb613', 'ff8b13', 'ff6e08', 'ff500d',
+'ff0000', 'de0101', 'c21301', 'a71001', '911003'
+ ]},'LST');
+//////////////
+var means = LST.reduceRegion({
+  reducer: ee.Reducer.mean(),
+  geometry: geometry,
+  scale: 30
+});
+
+// Make a feature without geometry and set the properties to the dictionary of means.
+var feature = ee.Feature(null, means);
+
+// Wrap the Feature in a FeatureCollection for export.
+var featureCollection = ee.FeatureCollection([feature]);
+
+// Export the FeatureCollection.
+Export.table.toDrive({
+  collection: featureCollection,
+  description: 'exportTableExample',
+  fileFormat: 'CSV'
+});
+////////////
+
+var startdate = '2013-01-01' // insert
+var enddate = '2021-12-30' // insert
+
+var years = ee.List.sequence(ee.Date(startdate).get('year'), ee.Date(enddate).get('year'));
+
+/// EVI calculations from Landsat
+var pointsmean = function(image) {
+  var means = image.reduceRegions({
+    collection: geometry, // used to be roi.select(['Id'])
+    reducer: ee.Reducer.mean(),
+    scale: 30
+  })
+  
+  // assign time for every feature
+  means = means.map(function(f) { return f.set({date: image.date().format("YYYY-MM-dd")}) })
+  
+  return means.copyProperties(image)
+};
+
+
+var finalEVI = temperature.map(pointsmean).flatten()
+.sort('date', false)
+.select(['date', 'mean'])
+print(finalEVI.limit(100), 'final EVI')
+
+Export.table.toDrive({
+collection: finalEVI,
+  description: 'EVI_'+startdate+'TO'+enddate,
+fileFormat: 'CSV'
+});
+
+
+{
+var min = ee.Number(LST.reduceRegion({
+reducer: ee.Reducer.mean(),
+geometry: geometry,
+scale: 30,
+maxPixels: 1e9
+}).values().get(0));
+print(min, 'mean');
+
+var max = ee.Number(LST.reduceRegion({
+reducer: ee.Reducer.max(),
+geometry: geometry,
+scale: 30,
+maxPixels: 1e9
+}).values().get(0));
+print(max, 'max');
+
+var max = ee.Number(LST.reduceRegion({
+reducer: ee.Reducer.min(),
+geometry: geometry,
+scale: 30,
+maxPixels: 1e9
+}).values().get(0));
+print(max, 'min')
+}
+
+
+Export.image.toDrive({
+  image: LST,
+  description: 'LST',
+  scale: 30,
+  region: geometry2,
+  fileFormat: 'GeoTIFF',
+});
