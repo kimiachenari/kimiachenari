@@ -1,7 +1,14 @@
+"""
+(G-mail: kimia.chenaari@gmail.com)
+"""
 
-// Get brightness temperature data for 1 year.
+"""
+Land Surface Temperature Visualization Using Google Earth Engine.
+"""
+
+// Get brightness temperature data 
 var landsat8Toa = ee.ImageCollection('LANDSAT/LC08/C01/T1_TOA');
-var temperature = landsat8Toa.filterBounds(geometry2)
+var temperature = landsat8Toa.filterBounds(geometry)
     .select(['B10'], ['temp'])
     .map(function(image) {
       // Kelvin to Celsius.
@@ -26,7 +33,8 @@ Map.addLayer(LST,{min: -5, max:45, palette: [
 'fff705', 'ffd611', 'ffb613', 'ff8b13', 'ff6e08', 'ff500d',
 'ff0000', 'de0101', 'c21301', 'a71001', '911003'
  ]},'LST');
-//////////////
+ 
+//reduce 
 var means = LST.reduceRegion({
   reducer: ee.Reducer.mean(),
   geometry: geometry,
@@ -45,17 +53,17 @@ Export.table.toDrive({
   description: 'exportTableExample',
   fileFormat: 'CSV'
 });
-////////////
+//
 
 var startdate = '2013-01-01' // insert
 var enddate = '2021-12-30' // insert
 
 var years = ee.List.sequence(ee.Date(startdate).get('year'), ee.Date(enddate).get('year'));
 
-/// EVI calculations from Landsat
+/// NDVI calculations from Landsat
 var pointsmean = function(image) {
   var means = image.reduceRegions({
-    collection: geometry, // used to be roi.select(['Id'])
+    collection: geometry,
     reducer: ee.Reducer.mean(),
     scale: 30
   })
@@ -67,14 +75,14 @@ var pointsmean = function(image) {
 };
 
 
-var finalEVI = temperature.map(pointsmean).flatten()
+var finalNDVI = temperature.map(pointsmean).flatten()
 .sort('date', false)
 .select(['date', 'mean'])
-print(finalEVI.limit(100), 'final EVI')
+print(finalNDVI.limit(100), 'final NDVI')
 
 Export.table.toDrive({
-collection: finalEVI,
-  description: 'EVI_'+startdate+'TO'+enddate,
+collection: finalNDVI,
+  description: 'NDVI'+startdate+'TO'+enddate,
 fileFormat: 'CSV'
 });
 
@@ -110,6 +118,6 @@ Export.image.toDrive({
   image: LST,
   description: 'LST',
   scale: 30,
-  region: geometry2,
+  region: geometry,
   fileFormat: 'GeoTIFF',
 });
