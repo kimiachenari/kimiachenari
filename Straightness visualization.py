@@ -1,7 +1,11 @@
 """
-Created on Wed Apr 2022
+(G-mail: kimia.chenaari@gmail.com)
+"""
 
-@author: Kimia Chenary (kimia.chenaari@gmail.com)
+"""
+
+Street Straightness-centrality Visualization Using Momepy library. for more information visit http://docs.momepy.org/.
+
 """
 #import necessary Python Libraries
 import geopandas as gpd
@@ -13,7 +17,7 @@ import contextily
 from matplotlib_scalebar.scalebar import ScaleBar
 import osmnx as ox
 
-#Getting the data from OSMnx 
+#Getting the region of interest's data from OSMnx 
 streets_graph = ox.graph_from_place('District 11, Mashhad, Iran', network_type='drive')
 streets_graph = ox.projection.project_graph(streets_graph)
 
@@ -67,4 +71,4 @@ scalebar = ScaleBar(
     font_properties={"size": 12},
 )
 ax.add_artist(scalebar)
-#ax.set_title("straightness");
+ax.set_title("straightness");
