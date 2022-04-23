@@ -3,7 +3,7 @@
 """
 
 """
-Street Straightness-centrality Visualization Using Momepy library. for more information visit http://docs.momepy.org/.
+Street Local Closeness-centrality Visualization Using Momepy library. for more information visit http://docs.momepy.org/.
 """
 #import necessary Python Libraries
 import geopandas as gpd
