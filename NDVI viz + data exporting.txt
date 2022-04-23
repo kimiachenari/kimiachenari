@@ -1,3 +1,10 @@
+"""
+(G-mail: kimia.chenaari@gmail.com)
+"""
+
+"""
+Normalized Difference Vegetation Index (NDVI) Visualization + Exporting data Using Google Earth Engine.
+"""
 //cloud mask
 var maskL8 = function(image) {
   var qa = image.select('BQA');
@@ -39,7 +46,7 @@ print('Count: ',count);
 //print(clippedCol);
 print(dataset,'dataset');
 
-//function to calculate NDVI in LANDSAT7
+//function to calculate NDVI 
 var addNDVI = function(image) {
   var NDVI = image.normalizedDifference(['B4', 'B3'])
   .rename('NDVI')
@@ -98,8 +105,8 @@ for (var i in OrderList) {
   var toexport=image.visualize(NDVIcolor).addBands(image);
 
 
-  // do what ever you need with image
-  Map.addLayer(image, NDVIcolor, i);
+
+Map.addLayer(image, NDVIcolor, i);
 
 
 
@@ -112,7 +119,7 @@ print(ui.Chart.image.series(withNDVI, geometry, ee.Reducer.min(), 30));
 print(ui.Chart.image.series(withNDVI, geometry, ee.Reducer.minMax(), 30));
 print(ui.Chart.image.series(withNDVI, geometry, ee.Reducer.stdDev(), 30));
 
-//
+//create charts
 var chart = ui.Chart.image.series({
     imageCollection: clippedCol.map(addNDVI).select('NDVI'),
     region:geometry,
@@ -124,13 +131,13 @@ var chart = ui.Chart.image.series({
 var startdate = '2013-01-01'  
 var enddate = '2021-12-30' 
 
-var EVI = clippedCol.map(addNDVI).select('NDVI');
-print(EVI, 'EVI')
+var NDVI = clippedCol.map(addNDVI).select('NDVI');
+print(NDVI, 'NDVI')
 
 //create function to calculate mean values for each polygon
 var pointsmean = function(image) {
   var means = image.reduceRegions({
-    collection: geometry, // used to be roi.select(['Id'])
+    collection: geometry, 
     reducer: ee.Reducer.mean(),
     scale: 30
   })
@@ -145,7 +152,7 @@ var pointsmean = function(image) {
 
 var pointsmax = function(image) {
   var maxs = image.reduceRegions({
-    collection: geometry, // used to be roi.select(['Id'])
+    collection: geometry,
     reducer: ee.Reducer.max(),
     scale: 30
   })
@@ -156,28 +163,29 @@ var pointsmax = function(image) {
   return maxs.copyProperties(image)
   
 };
-var finalEVIi = EVI.map(pointsmax).flatten()
+var finalNDVImax = NDVI.map(pointsmax).flatten()
 .sort('date', false)
 .select(['date', 'max' ])
-print(finalEVIi.limit(100), 'final EVI2')
+print(finalNDVImax.limit(100), 'final NDVImax')
 
-
+// Export a .csv table min value
 Export.table.toDrive({
-collection: finalEVIi,
-  description: 'EVImax_'+startdate+'TO'+enddate,
+collection: finalNDVImax,
+  description: 'NDVImax_'+startdate+'TO'+enddate,
 fileFormat: 'CSV'
 });
 
 
 
-var finalEVI = EVI.map(pointsmean).flatten()
+var finalNDVImean = NDVI.map(pointsmean).flatten()
 .sort('date', false)
 .select(['date', 'mean' ])
-print(finalEVI.limit(100), 'final EVI')
+print(finalNDVImean.limit(100), 'final NDVImean')
 
+// Export a .csv table mean value
 Export.table.toDrive({
-collection: finalEVI,
-  description: 'EVImean_'+startdate+'TO'+enddate,
+collection: finalNDVImean,
+  description: 'NDVImean_'+startdate+'TO'+enddate,
 fileFormat: 'CSV'
 });
 
@@ -195,15 +203,15 @@ var pointsmax = function(image) {
   return maxs.copyProperties(image)
   
 };
-var finalEVIii = EVI.map(pointsmax).flatten()
+var finalNDVImin = NDVI.map(pointsmax).flatten()
 .sort('date', false)
 .select(['date', 'min' ])
-print(finalEVIi.limit(100), 'final EVI2')
+print(finalNDVImin.limit(100), 'final NDVImin')
 
-
+// Export a .csv table min value
 Export.table.toDrive({
-collection: finalEVIii,
-  description: 'EVImin_'+startdate+'TO'+enddate,
+collection: finalNDVImin,
+  description: 'NDVImin_'+startdate+'TO'+enddate,
 fileFormat: 'CSV'
 });
 
@@ -240,7 +248,7 @@ Export.table.toDrive(ndviWithCount, 'exportAsCSV', 'GEE', 'CSVexport', 'CSV');
 
 
 // get the mean value for the region from each image
-var meanEVI = withNDVI.map(function(image){
+var meanNDVI = withNDVI.map(function(image){
   var date = image.get('system:time_start');
   var mean = image.reduceRegion({
     reducer: ee.Reducer.mean(),
@@ -252,10 +260,10 @@ var meanEVI = withNDVI.map(function(image){
                             'date': date})
 });
 
-// Export a .csv table of date, mean NDVI for watershed
+// Export a .csv table of date, mean NDVI 
 Export.table.toDrive({
-  collection: meanEVI,
-  description: 'EVI_Timeseries',
+  collection: meanNDVI,
+  description: 'NDVI_Timeseries',
   folder: 'Genus_Exchange_GEE_Data',
   fileFormat: 'CSV',
 })
