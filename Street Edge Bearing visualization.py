@@ -1,7 +1,11 @@
 """
-Created on Wed Apr 2022
+(G-mail: kimia.chenaari@gmail.com)
+"""
 
-@author: Kimia Chenary (kimia.chenaari@gmail.com)
+"""
+
+Street Edge Bearing Visualization Using OSMnx library. for more information visit https://github.com/gboeing/osmnx.
+
 """
 
 #import necessary Python Libraries
