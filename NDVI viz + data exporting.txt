@@ -15,7 +15,6 @@ var maskL8 = function(image) {
 }
 
 //Create  dataset
-
 var dataset = ee.ImageCollection('LANDSAT/LC08/C01/T1_TOA')
                   .filterDate('2013-01-01', '2021-12-30')
                   .select('B1','B2','B3','B4','BQA')
@@ -23,7 +22,6 @@ var dataset = ee.ImageCollection('LANDSAT/LC08/C01/T1_TOA')
                   .map(maskL8);
 
 //RGB visualization
-
 var visParams = {
   bands: ['B3', 'B2', 'B1'],
   min: 0,
@@ -117,7 +115,7 @@ var chart = ui.Chart.image.series({
     scale: 30,
 });
 
-
+//set time
 var startdate = '2013-01-01'  
 var enddate = '2021-12-30' 
 
@@ -139,34 +137,6 @@ var pointsmean = function(image) {
   
 };
 
-
-var pointsmax = function(image) {
-  var maxs = image.reduceRegions({
-    collection: geometry,
-    reducer: ee.Reducer.max(),
-    scale: 30
-  })
-  
-  // assign time for every feature
-  maxs = maxs.map(function(f) { return f.set({date: image.date().format("YYYY-MM-dd")}) })
-  
-  return maxs.copyProperties(image)
-  
-};
-var finalNDVImax = NDVI.map(pointsmax).flatten()
-.sort('date', false)
-.select(['date', 'max' ])
-print(finalNDVImax.limit(100), 'final NDVImax')
-
-// Export a .csv table min value
-Export.table.toDrive({
-collection: finalNDVImax,
-  description: 'NDVImax_'+startdate+'TO'+enddate,
-fileFormat: 'CSV'
-});
-
-
-
 var finalNDVImean = NDVI.map(pointsmean).flatten()
 .sort('date', false)
 .select(['date', 'mean' ])
@@ -178,34 +148,6 @@ collection: finalNDVImean,
   description: 'NDVImean_'+startdate+'TO'+enddate,
 fileFormat: 'CSV'
 });
-
-
-var pointsmax = function(image) {
-  var maxs = image.reduceRegions({
-    collection: geometry, 
-    reducer: ee.Reducer.min(),
-    scale: 30
-  })
-  
-  // assign time for every feature
-  maxs = maxs.map(function(f) { return f.set({date: image.date().format("YYYY-MM-dd")}) })
-  
-  return maxs.copyProperties(image)
-  
-};
-var finalNDVImin = NDVI.map(pointsmax).flatten()
-.sort('date', false)
-.select(['date', 'min' ])
-print(finalNDVImin.limit(100), 'final NDVImin')
-
-// Export a .csv table min value
-Export.table.toDrive({
-collection: finalNDVImin,
-  description: 'NDVImin_'+startdate+'TO'+enddate,
-fileFormat: 'CSV'
-});
-
-
 
 
 // get the information using getRegion()
@@ -234,26 +176,4 @@ var featureCollection = ndviWithCount.map(function(image){
 print(featureCollection)
 Map.addLayer(featureCollection, {color: 'green'})
 
-Export.table.toDrive(ndviWithCount, 'exportAsCSV', 'GEE', 'CSVexport', 'CSV');
 
-
-// get the mean value for the region from each image
-var meanNDVI = withNDVI.map(function(image){
-  var date = image.get('system:time_start');
-  var mean = image.reduceRegion({
-    reducer: ee.Reducer.mean(),
-    geometry: geometry,
-    scale: 30
-  });
-  // and return a feature with 'null' geometry with properties (dictionary)  
-  return ee.Feature(null, {'mean': mean.get('NDVI'),
-                            'date': date})
-});
-
-// Export a .csv table of date, mean NDVI 
-Export.table.toDrive({
-  collection: meanNDVI,
-  description: 'NDVI_Timeseries',
-  folder: 'Genus_Exchange_GEE_Data',
-  fileFormat: 'CSV',
-})
