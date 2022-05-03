@@ -18,7 +18,7 @@ var temperature = landsat8Toa.filterBounds(geometry)
 var clippedCol=temperature.map(function(im){ 
   return im.clip(geometry);
 });
-// Calculate bands for seasonal temperatures and elevations; composite into
+// Calculate bands temperatures; composite into
 // a single image.
 
 var LST = clippedCol.filterDate('2013-01-01', '2021-12-30')
@@ -37,8 +37,7 @@ Map.addLayer(LST,{min: -5, max:45, palette: [
 //reduce 
 var means = LST.reduceRegion({
   reducer: ee.Reducer.mean(),
-  geometry: geometry,
-  scale: 30
+  geometry: geometry
 });
 
 // Make a feature without geometry and set the properties to the dictionary of means.
@@ -60,7 +59,7 @@ var enddate = '2021-12-30' // insert
 
 var years = ee.List.sequence(ee.Date(startdate).get('year'), ee.Date(enddate).get('year'));
 
-/// NDVI calculations from Landsat
+/// LST calculations from Landsat
 var pointsmean = function(image) {
   var means = image.reduceRegions({
     collection: geometry,
@@ -75,50 +74,34 @@ var pointsmean = function(image) {
 };
 
 
-var finalNDVI = temperature.map(pointsmean).flatten()
+var finalLST = temperature.map(pointsmean).flatten()
 .sort('date', false)
 .select(['date', 'mean'])
-print(finalNDVI.limit(100), 'final NDVI')
+print(finalLST.limit(100), 'final LST')
 
-//Export data as CSV file
+//Export data as .csv file
 Export.table.toDrive({
-collection: finalNDVI,
-  description: 'NDVI'+startdate+'TO'+enddate,
+collection: finalLST,
+  description: 'LST'+startdate+'TO'+enddate,
 fileFormat: 'CSV'
 });
 
 
 {
-var min = ee.Number(LST.reduceRegion({
+var mean = ee.Number(LST.reduceRegion({
 reducer: ee.Reducer.mean(),
 geometry: geometry,
 scale: 30,
 maxPixels: 1e9
 }).values().get(0));
-print(min, 'mean');
+print(mean, 'mean');
 
-var max = ee.Number(LST.reduceRegion({
-reducer: ee.Reducer.max(),
-geometry: geometry,
-scale: 30,
-maxPixels: 1e9
-}).values().get(0));
-print(max, 'max');
-
-var max = ee.Number(LST.reduceRegion({
-reducer: ee.Reducer.min(),
-geometry: geometry,
-scale: 30,
-maxPixels: 1e9
-}).values().get(0));
-print(max, 'min')
 }
 
 //Export image
 Export.image.toDrive({
   image: LST,
   description: 'LST',
-  scale: 30,
   region: geometry,
   fileFormat: 'GeoTIFF',
 });
