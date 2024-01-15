@@ -1,0 +1,495 @@
+"""
+The code was created by kimia.chenary@yahoo.com
+prediction_ARIMA.ipynb
+
+This code was generated to forecast SDG score using Linear Regression which smooth by Holt multiplective with predictors
+
+"""
+
+import pandas as pd
+df= pd.read_csv('SDG_Group.csv',encoding='unicode_escape', delimiter='')
+df=df.replace({"/":"."},regex=True)
+#df.to_csv('SDG_Group.csv', index=False)
+#files.download('SDG_Group.csv')
+
+from google.colab import files
+files.upload()
+#df.to_csv('norway_sdg_data.csv', index=False)
+#files.download('norway_sdg_data.csv')
+
+import pandas as pd
+df=pd.read_csv('SDG_Group.csv')
+#df= df[df['Country'] == 'Latin America and the Caribbean']
+df['SDG Index Score']
+
+import pandas as pd
+df=pd.read_csv('SDG_Group.csv')
+months = ['jan' if i % 2 == 0 else 'jan1' for i in range(len(df))]
+
+df['month'] = months
+df= df[df['Country'] == 'Latin America and the Caribbean']
+time_values = list(range(1, 24))
+
+# dAdd the "time" column to the dataset
+df['time'] = time_values
+df
+
+df_train = dfn[df["year"] < 2017].copy()
+df_test = df[df["year"] >= 2017].copy()
+
+import pandas as pd
+df2 = pd.read_csv('fullsdg_final2023_witoutmissing.csv')
+df2  =df2.fillna(df2.mean())
+df= df2[df2['Country'] == 'Norway']
+
+df = df[['year', 'SDG Index Score','population','n_sdg3_u5mort','n_sdg1_lmicpov','n_sdg3_lifee','n_sdg4_literacy','n_sdg6_wastewat','n_sdg7_cleanfuel','n_sdg8_accounts','n_sdg9_roads','n_sdg9_articles','n_sdg11_slums','n_sdg16_u5reg','n_sdg17_statperf']].copy()
+df['time'] = range(1, 24)
+
+
+
+
+
+df_train = df[df["year"] < 2017].copy()
+df_test = df[df["year"] >= 2016].copy()
+
+import matplotlib.pyplot as plt
+
+pd.set_option('display.max_rows', 50)
+correlation = df.corr()
+correlation = correlation['SDG Index Score']
+with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+    print(correlation)
+
+columns_to_plot = [
+    'n_sdg1_wpc' ,
+'n_sdg2_undernsh' ,
+'n_sdg2_stunting'  ,
+'n_sdg2_wasting'   ,
+'n_sdg2_obesity'    ,
+'n_sdg2_snmi'        ,
+'n_sdg3_matmort'      ,
+'n_sdg3_neonat'        ,
+'n_sdg3_u5mort'        ,
+'n_sdg3_tb'          ,
+'n_sdg3_pollmort'     ,
+'n_sdg3_traffic'       ,
+'n_sdg3_fertility'     ,
+'n_sdg3_births'       ,
+'n_sdg3_vac'          ,
+'n_sdg4_earlyedu'      ,
+'n_sdg4_primary'       ,
+'n_sdg4_second'        ,
+'n_sdg5_familypl'     ,
+'n_sdg5_edat'        ,
+'n_sdg5_lfpr'        ,
+'n_sdg5_parl'         ,
+'n_sdg6_water'       ,
+'n_sdg6_sanita'      ,
+'n_sdg7_elecac'       ,
+'n_sdg7_cleanfuel'     ,
+'n_sdg7_co2twh'        ,
+'n_sdg8_adjgrowth'    ,
+'n_sdg8_unemp'        ,
+'n_sdg9_roads'         ,
+'n_sdg10_gini'        ,
+'n_sdg11_pm25'        ,
+'n_sdg11_pipedwat'    ,
+'n_sdg12_msw'         ,
+'n_sdg12_ewaste'      ,
+'n_sdg12_explastic'   ,
+'n_sdg13_co2gcp'      ,
+'n_sdg15_cpta'        ,
+'n_sdg15_redlist'      ,
+'n_sdg16_homicides'    ,
+'n_sdg16_detain'     ,
+'n_sdg16_u5reg'       ,
+'n_sdg17_govex'        ,
+'n_sdg17_statperf'    ,
+
+]
+# Create scatter plots for each correlation with 'SDG Index Score'
+for column in columns_to_plot:
+    plt.figure(figsize=(8, 6))
+    plt.scatter(df[column], df['SDG Index Score'], color='skyblue')
+    plt.title(f'Correlation: {column} vs. SDG Index Score')
+    plt.xlabel(column)
+    plt.ylabel('SDG Index Score')
+    import matplotlib.pyplot as plt
+
+import matplotlib.pyplot as plt
+import math
+
+# Calculate the number of rows and columns needed
+num_plots = len(columns_to_plot)
+num_cols = 4  # Number of columns
+num_rows = math.ceil(num_plots / num_cols)  # Calculate the number of rows
+
+# Create scatter plots for each correlation with 'SDG Index Score'
+fig, axs = plt.subplots(num_rows, num_cols, figsize=(25, 40))
+
+# Flatten the axs array to make it easier to iterate through
+axs = axs.ravel()
+
+for i, column in enumerate(columns_to_plot):
+    axs[i].scatter(df[column], df['SDG Index Score'], color='skyblue')
+    axs[i].set_title(f'Correlation: {column} vs. SDG Index Score')
+    axs[i].set_xlabel(column)
+    axs[i].set_ylabel('SDG Index Score')
+
+# Hide any empty subplots
+for j in range(num_plots, num_cols * num_rows):
+    axs[j].set_visible(False)
+
+plt.tight_layout()
+plt.show()
+
+#    plt.show()
+
+
+x_train = df_train[[
+'year',
+'n_sdg3_neonat',
+'n_sdg3_u5mort'   ,
+'n_sdg3_tb' ,  #*
+'n_sdg3_births',
+'n_sdg4_second',#*
+'n_sdg4_primary',#*
+'n_sdg6_water'   ,
+'n_sdg6_sanita'   ,
+'n_sdg7_cleanfuel',#*
+'n_sdg13_co2gcp'#*
+
+    ]].values
+x_train.shape
+
+y_train = df_train['SDG Index Score'].values
+y_train.shape
+
+x_test = df_test[[
+'year',
+'n_sdg3_neonat',
+'n_sdg3_u5mort'   ,
+'n_sdg3_tb' ,  #*
+'n_sdg3_births',
+'n_sdg4_second',#*
+'n_sdg4_primary',#*
+'n_sdg6_water'   ,
+'n_sdg6_sanita'   ,
+'n_sdg7_cleanfuel',#*
+'n_sdg13_co2gcp'#*
+
+    ]].values
+y_test = df_test['SDG Index Score'].values
+
+from sklearn.linear_model import LinearRegression
+model_trend = LinearRegression()
+model_trend.fit(x_train,y_train)
+
+
+
+y_forecast = model_trend.predict(x_test)
+
+y_fittedvalue = model_trend.predict(x_train)
+
+error = y_train - y_fittedvalue
+se = error.std()
+ME = 1.96 * se
+ME
+
+import matplotlib.pyplot as plt# visualize the data
+plt.figure(figsize=(15,8))
+plt.plot(df_train['year'],y_train,'bo:')
+plt.plot(df_train['year'],y_fittedvalue,'b')
+# forecasted data
+plt.plot(df_test['year'],y_test,'o:',color='orange')
+plt.plot(df_test['year'],y_forecast,'b',color='red')
+# margin of error
+ci_plus = y_forecast + ME
+ci_minus = y_forecast - ME
+plt.fill_between(df_test['year'],(ci_plus),(ci_minus),alpha=0.1,color='black')
+
+
+plt.legend(['TimeSeries Data','Trend','True Future Data','Forecasted Trend Data','95% Confidence Interval'])
+plt.show()
+x_test
+
+#To make the trend line follow the data more closely, you can consider using a more flexible model, such as polynomial regression or spline regression, which can capture more complex relationships between the independent and dependent variables. Additionally, you may also want to explore other advanced regression techniques such as ridge regression or lasso regression to improve the model's fit to the data.
+
+
+
+import numpy as np
+forecast_mean = model_trend.predict(np.array([[2016. ,   75.4,   87.3,   91.1,   93.5,   71.8,   89.8,   92.4,
+          82.8,   87.5,   86.9]]))
+
+print(forecast_mean)
+print((forecast_mean - ME , forecast_mean + ME))
+
+dum = pd.get_dummies(df_train['month'],drop_first=True)
+df_train1 = df_train.copy()
+df_train1 = pd.concat((df_train1,dum),axis=1)
+df_train1
+
+#df_train1.head()
+
+dum = pd.get_dummies(df_test['month'],drop_first=True)
+df_test1 = df_test.copy()
+df_test1 = pd.concat((df_test1,dum),axis=1)
+df_test1
+
+#df_test1
+
+#df_train1
+
+cols =['time','jan1']
+x_train_add = df_train1[cols].values
+x_test_add = df_test1[cols].values
+
+y_train_add = df_train1['SDG Index Score'].values
+y_test_add = df_test1['SDG Index Score'].values
+
+x_train_add.shape, x_test_add.shape, y_train_add.shape, y_test_add.shape
+
+from sklearn.linear_model import LinearRegression
+
+model_add = LinearRegression()
+model_add.fit(x_train_add,y_train_add)
+
+# fitted values
+y_fittedvalue_add = model_add.predict(x_train_add)
+# forecasted values
+y_forecast_add = model_add.predict(x_test_add)
+
+# visualize the data
+plt.figure(figsize=(15,8))
+plt.plot(df_train1['year'],y_train_add,'bo:')
+plt.plot(df_train1['year'],y_fittedvalue_add,'c')
+# forecasted data
+plt.plot(df_test1['year'],y_test_add,'o:',color='orange')
+plt.plot(df_test1['year'],y_forecast_add,'b',color='red')
+# margin of error
+ci_plus = y_forecast_add + ME
+ci_minus = y_forecast_add - ME
+plt.fill_between(df_test1['year'],(ci_plus),(ci_minus),alpha=0.1,color='black')
+
+
+plt.legend(['TimeSeries Data','Fitted Additive Model','True Future Data','Forecasted Additive Model Data','95% Confidence Interval'])
+plt.show()
+
+df_train2 = df_train.copy()
+df_test2 = df_test.copy()
+
+X_t = df_train2[['time']].values
+y_true_mul = df_train2['SDG Index Score'].values
+X_t.shape, y_true_mul.shape
+
+X_t_test = df_test2[['time']].values
+y_true_test_mul = df_test2['SDG Index Score'].values
+
+X_t_test.shape, y_true_test_mul.shape
+
+from sklearn.linear_model import LinearRegression
+model_trend_mul = LinearRegression()
+model_trend_mul.fit(X_t,y_true_mul)
+
+y_fittedvalues_trend = model_trend_mul.predict(X_t)
+
+df_train2['predicted_T'] = y_fittedvalues_trend
+df_train2.head()
+
+df_train2['SI'] = df_train2['SDG Index Score'] / df_train2['predicted_T']
+df_train2.head(20)
+
+deviation_season = df_train2[['month','SI']].groupby(by='month').mean().rename(columns={'SI':'correction_factor'})
+deviation_season
+
+df_train2 = df_train2.merge(deviation_season,on='month')
+
+df_train2['Fitted_values'] = df_train2['predicted_T'] * df_train2['correction_factor']
+
+ftrend = model_trend_mul.predict(X_t_test)
+df_test2['Forecasted_Trend']= ftrend
+df_test2.head()
+
+df_test2 = pd.merge(df_test2,deviation_season,on='month')
+df_test2.head()
+
+df_test2['Forecasted_mul'] = df_test2['Forecasted_Trend'] * df_test2['correction_factor']
+df_test2.head()
+
+# margin error (train)
+# ME = 1.96 * SE
+# SE =
+error = df_train2['SDG Index Score'] - df_train2['Fitted_values']
+SE = error.std()
+ME = 1.96*SE
+print(ME)
+print(SE)
+
+df_train2.sort_values(by='year',inplace=True)
+df_test2.sort_values(by='year',inplace=True)
+
+
+
+# visualize the data
+plt.figure(figsize=(15,8))
+plt.plot(df_train2['year'],df_train2['SDG Index Score'],'bo:')
+plt.plot(df_train2['year'],df_train2['Fitted_values'],'c') # fitted
+# forecasted data
+plt.plot(df_test2['year'],df_test2['SDG Index Score'],'o:',color='orange')
+plt.plot(df_test2['year'],df_test2['Forecasted_mul'],'b',color='red')
+# margin of error
+ci_plus = df_test2['Forecasted_mul'] + ME
+ci_minus = df_test2['Forecasted_mul'] - ME
+plt.fill_between(df_test1['year'],(ci_plus),(ci_minus),alpha=0.1,color='black')
+
+
+plt.legend(['TimeSeries Data','Fitted Multiplicative Model','True Future Data','Forecasted Multiplicative Model Data','95% Confidence Interval'])
+plt.show()
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+# visualize the data
+plt.figure(figsize=(15, 8))
+plt.plot(df_train2['year'], df_train2['SDG Index Score'], 'bo:')
+plt.plot(df_train2['year'], df_train2['Fitted_values'], 'c')  # fitted
+# forecasted data
+plt.plot(df_test2['year'], df_test2['SDG Index Score'], 'o:', color='orange')
+plt.plot(df_test2['year'], df_test2['Forecasted_mul'], 'b', color='red')
+# margin of error
+ci_plus = df_test2['Forecasted_mul'] + ME
+ci_minus = df_test2['Forecasted_mul'] - ME
+plt.fill_between(df_test2['year'], ci_plus, ci_minus, alpha=0.1, color='black')
+# Calculate the trend value for the year 2040 using the forecast model or method
+# For example, if you have a linear trend, you can use the slope-intercept form of a line to calculate the value
+
+# Assuming a linear trend model: y = mx + b
+# Where m is the slope and b is the intercept
+
+# Calculate the trend value for the year 2040 using the linear model
+m = (df_test2['Forecasted_mul'].iloc[-1] - df_test2['Forecasted_mul'].iloc[0]) / (df_test2['year'].iloc[-1] - df_test2['year'].iloc[0])
+b = df_test2['Forecasted_mul'].iloc[0] - m * df_test2['year'].iloc[0]
+years_2022_to_2040 = np.arange(2022, 2041)
+
+# Calculate the trend values for each year
+trend_values_2022_to_2040 = m * years_2022_to_2040 + b
+
+# Now that we have the trend values for 2022 to 2040, we can include them in the plot
+x_extended = np.append(df_test2['year'], years_2022_to_2040)
+y_trend_line = np.append(df_test2['Forecasted_mul'], trend_values_2022_to_2040)
+plt.plot(x_extended, y_trend_line, 'g--')  # trend line for t
+
+plt.legend(['TimeSeries Data', 'Fitted Multiplicative Model', 'True Future Data', 'Forecasted Multiplicative Model Data', '95% Confidence Interval', 'Trend Line'])
+plt.show()
+
+
+
+x_extended
+y_trend_line
+
+df = pd.DataFrame({'forecast':
+
+
+[58.9,
+59.2,
+59.3,
+59.0,
+59.4,
+59.7,
+59.5,
+60.1,
+60.2,
+60.5,
+60.6,
+60.9,
+61.2,
+61.5,
+62.2,
+62.3,
+62.5,
+62.937890,
+63.187892,
+63.388217,
+63.680459,
+64.062694,
+64.294305,
+64.403472,
+64.658480,
+64.877243,
+65.105014,
+65.330546,
+65.556634,
+65.782584,
+66.008569,
+66.234545,
+66.460523,
+66.686500,
+66.912478,
+67.138455,
+67.364433,
+67.590411,
+67.816388,
+68.042366,
+68.268344]
+
+
+,
+
+
+'years': [2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040]
+,'correlation':[58.9,
+59.2,
+59.3,
+59.0,
+59.4,
+59.7,
+59.5,
+60.1,
+60.2,
+60.5,
+60.6,
+60.9,
+61.2,
+61.5,
+62.2,
+62.3,
+62.5,
+62.72154554,
+62.92868222,
+63.18142837,
+63.38839845,
+63.64131119,
+63.64131119,
+63.8712526 ,
+64.10119401,
+64.33113543,
+64.56107684,
+64.79101825,
+65.02095966,
+65.25090108,
+65.48084249,
+65.7107839 ,
+65.94072531,
+66.17066672,
+66.40060814,
+66.63054955,
+66.86049096,
+67.09043237,
+67.32037379,
+67.5503152 ,
+67.78025661]
+                   })
+df
+
+
+plt.figure(figsize=(12,6))
+plt.plot(df['years'], df['forecast'], label='Forecasted Values', marker='o', linestyle='-')
+plt.plot(df['years'], df['correlation'], label='Correlation', marker='x', linestyle='-')
+plt.title('Forecasted Values and Correlation Over Time')
+plt.xlabel('Year')
+plt.ylabel('Value')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+
