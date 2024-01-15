@@ -1,0 +1,264 @@
+"""
+The code was created by kimia.chenary@yahoo.com
+prediction_ARIMA.ipynb
+
+This code was generated to forecast SDG score using ARIMA model with predictors
+
+"""
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+# statmodels
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+from statsmodels.tsa.arima_model import ARMA, ARIMA
+# datetime
+from datetime import datetime
+
+from statsmodels.tsa.arima.model import ARIMA
+
+import warnings
+warnings.filterwarnings('ignore')
+
+from google.colab import files
+files.upload()
+
+import pandas as pd
+df = pd.read_csv('fullsdg_final2023_witoutmissing.csv')
+df  =df.fillna(df.mean())
+df= df[df['Country'] == 'East and South Asia']
+df = df[['year', 'SDG Index Score']]
+df['year'] = pd.to_datetime(df['year'], format='%Y').dt.strftime('%Y-01-01')
+df
+#country_groups = df['Country'].unique()
+#print(country_groups)
+
+
+import pandas as pd
+df2 = pd.read_csv('fullsdg_final2023_witoutmissing.csv')
+df2  =df2.fillna(df2.mean())
+df= df2[df2['Country'] == 'East and South Asia']
+
+df = df[['year', 'SDG Index Score','n_sdg3_neonat',
+'n_sdg3_u5mort'   ,
+'n_sdg3_tb' ,  #*
+'n_sdg3_births',
+'n_sdg4_second',#*
+'n_sdg4_primary',#*
+'n_sdg6_water'   ,
+'n_sdg6_sanita'   ,
+'n_sdg7_cleanfuel',#*
+'n_sdg13_co2gcp'#*
+]]
+df['year'] = pd.to_datetime(df['year'], format='%Y').dt.strftime('%Y-01-01')
+
+df
+
+train_df = df[df["year"] < 2017].copy()
+test_df = df[df["year"] >= 2017].copy()
+
+
+df['year'] = pd.to_datetime(df['year'])
+
+# split the data into train and test
+cut_off = datetime.strptime('2016-01-01','%Y-%m-%d')
+train_df = df[df['year'] <= cut_off]
+test_df = df[df['year'] >= cut_off]
+# set the time as index
+train_df.set_index('year',inplace=True)
+test_df.set_index('year',inplace=True)
+
+fig,ax = plt.subplots(figsize=(15,8))
+train_df.plot(kind='line',ax=ax)
+test_df.plot(kind='line',ax=ax)
+plt.xlabel('month')
+plt.ylabel('SDG Index Score')
+plt.legend(['Train data','Test data'])
+plt.show()
+
+# visualize
+fig,ax = plt.subplots(figsize=(15,8))
+plt.plot(train_df['year'],train_df['SDG Index Score'])
+plt.plot(test_df['year'],test_df['SDG Index Score'])
+plt.xlabel('year')
+plt.ylabel('SDG')
+plt.legend(['Train data','Test data'])
+plt.show()
+
+
+from statsmodels.tsa.stattools import adfuller
+
+adfuller(train_df['SDG Index Score'])
+
+stationary_train_df=df[['year', 'SDG Index Score','n_sdg3_neonat','n_sdg3_u5mort','n_sdg3_tb' ,'n_sdg3_births','n_sdg4_second','n_sdg4_primary','n_sdg6_water','n_sdg6_sanita','n_sdg7_cleanfuel','n_sdg13_co2gcp']]
+
+stationary_train_df = train_df.diff() # difference
+stationary_train_df.dropna(inplace=True) # drop the null values
+stationary_train_df
+
+fig,ax = plt.subplots(figsize=(15,8))
+stationary_train_df['SDG Index Score'].plot(kind='line', ax=ax)
+
+adfuller(stationary_train_df['SDG Index Score'])
+
+fig,ax = plt.subplots(nrows=1,ncols=2,figsize=(15,8))
+
+fig = plot_acf(stationary_train_df['SDG Index Score'],ax=ax[0])
+fig = plot_pacf(stationary_train_df['SDG Index Score'],ax=ax[1])
+
+p,q = (0,0)
+#model_arma = ARIMA(train_df['SDG Index Score'],order=(p,0,q)).fit()
+model_arma = ARIMA(stationary_train_df['SDG Index Score'],order=(p,0,q)).fit()
+print(model_arma.summary())
+
+import statsmodels.api as sm
+
+# Define the endogenous variables (multiple time series)
+endog = stationary_train_df[['n_sdg3_neonat','n_sdg3_u5mort','n_sdg3_tb' ,'n_sdg3_births','n_sdg4_second','n_sdg4_primary','n_sdg6_water','n_sdg6_sanita','n_sdg7_cleanfuel','n_sdg13_co2gcp']]
+exog = stationary_train_df['SDG Index Score']  # Replace 'SDG Index Score' with the appropriate exogenous variable
+
+# Fit the VARMAX model with regularization (ridge regression)
+model = sm.tsa.VARMAX(endog, exog, order=(1, 1))
+results = model.fit_regularized(alpha=1.0)  # Adjust alpha (regularization strength) as needed
+
+# Print the model summary
+print(results.summary())
+
+import statsmodels.api as sm
+
+# Define the endogenous variable (the variable you want to model)
+endog = stationary_train_df['SDG Index Score']  # Replace 'n_sdg3_neonat' with the appropriate endogenous variable
+
+# Define the exogenous variables (external values)
+exog = stationary_train_df[['SDG Index Score','n_sdg3_neonat','n_sdg3_u5mort','n_sdg3_tb' ,'n_sdg3_births','n_sdg4_second','n_sdg4_primary','n_sdg6_water','n_sdg6_sanita','n_sdg7_cleanfuel','n_sdg13_co2gcp']]  # Replace with the appropriate exogenous variables
+
+# Fit the ARIMAX model with multiple exogenous variables
+model = sm.tsa.ARIMA(endog=endog, exog=exog, order=(1, 0, 1))
+results = model.fit()
+
+# Print the model summary
+print(results.summary())
+
+model_arma.aic # error
+
+from sklearn.metrics import mean_squared_error
+
+fitted_values = model_arma.fittedvalues
+
+mse = mean_squared_error(stationary_train_df['SDG Index Score'],fitted_values)
+print('mean square error =',mse)
+
+fig,ax = plt.subplots(figsize=(15,8))
+stationary_train_df['SDG Index Score'].plot(kind='line',ax=ax)
+fitted_values.plot(kind='line',ax=ax)
+plt.legend(['train','fitted values'])
+
+train_df.iloc[-1]
+
+start_date = '2016-01-01'
+end_date = '2040-01-01'
+prediction_values = model_arma.predict(start=start_date, end=end_date) # stationary in nature
+
+#predict=model_arma.predict(start=pd.to_datetime('2013'), end=pd.to_datetime('2015') ,typ='levels')
+
+intial_value =69
+forecasted_values = intial_value + prediction_values.cumsum()
+forecasted_values
+
+fig,ax = plt.subplots(figsize=(15,8))
+train_df.plot(kind='line',ax=ax,alpha=0.5)
+test_df.plot(kind='line',ax=ax,alpha=0.5)
+
+
+forecasted_values.plot(kind='line',ax=ax)
+plt.xlabel('month')
+plt.ylabel('no. of passenges')
+plt.legend(['Train data','Test data','Forecated_values'])
+plt.show()
+train_df
+
+df = pd.DataFrame({'forecast':
+
+[64.5,
+64.7,
+64.8,
+65.1,
+65.5,
+65.8,
+66.1,
+66.4,
+66.7,
+67.0,
+67.3,
+67.4,
+67.7,
+68.1,
+68.6,
+69.1,
+68.7,
+68.946164,
+69.826695,
+70.117815,
+70.376240,
+70.421953,
+70.509358,
+71.156498,
+71.597737,
+71.755818,
+71.916291,
+72.094402,
+72.549212,
+73.013046,
+73.209768,
+73.379084,
+73.625960,
+73.999010,
+74.416187,
+74.668557,
+74.851985,
+75.118385,
+75.466143,
+75.836534,
+76.117725]
+
+
+
+,
+
+
+'years': [2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040]
+
+                   })
+df
+
+years_list = list(range(2000, 2041))
+print(years_list)
+
+model_arima = ARIMA(stationary_train_df,order=(6,0,6)).fit()
+
+start_date = '2016-01-01'
+end_date = '2040-01-01'
+predicted_value_arima = model_arima.predict(start=start_date,end=end_date) # stationary
+
+train_df.iloc[-1]
+
+forecasted_values_arima = 63.4+ np.cumsum(predicted_value_arima)
+
+len(forecasted_values_arima)
+
+confidence_interval = model_arima.forecast(steps=25)
+confidence_interval
+
+upper_lmt = forecasted_values_arima + confidence_interval[:,1]
+lower_lmt = forecasted_values_arima + confidence_interval[:,0]
+
+# visualize
+fig,ax = plt.subplots(figsize=(15,8))
+train_df.plot(kind='line',ax=ax,alpha=0.5)
+test_df.plot(kind='line',ax=ax,alpha=0.5)
+
+
+forecasted_values_arima.plot(kind='line',ax=ax)
+plt.fill_between(test_df.index,lower_lmt,upper_lmt,color='k',alpha=0.2)
+
