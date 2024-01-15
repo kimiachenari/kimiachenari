@@ -2,7 +2,7 @@
 The code was created by kimia.chenary@yahoo.com
 prediction_ARIMA.ipynb
 
-This code was generated to forecast SDG score using Linear Regression which smooth by Holt multiplective with predictors
+This code was generated to forecast SDG score using Linear Regression which smooth by Holt multiplicative with predictors
 
 """
 
