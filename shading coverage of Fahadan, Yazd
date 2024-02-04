@@ -1,0 +1,31 @@
+import cv2
+
+# Load the image
+image = cv2.imread('E:/00bookchapter/0revised-nextround/perspective/IMG_20240105_160847_517.jpg')
+
+# Convert to grayscale
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+# Calculate average brightness
+average_brightness = gray.mean()
+
+# Define threshold value
+threshold_value = 127
+
+# Apply thresholding
+_, binary_image = cv2.threshold(gray, threshold_value, 255, cv2.THRESH_BINARY)
+
+# Compute histogram
+histogram = cv2.calcHist([gray], [0], None, [256], [0, 256])
+
+# Compute mean, variance, and standard deviation
+mean_intensity = gray.mean()
+variance_intensity = gray.var()
+std_dev_intensity = gray.std()
+
+# Display the results
+cv2.imshow('Original Image', image)
+cv2.imshow('Binary Image', binary_image)
+#cv2.imshow('Histogram', histogram)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
