@@ -1,3 +1,8 @@
+"""
+The code was created by kimia.chenary@yahoo.com
+
+This code was generated to visualize shading coverage 
+"""
 import cv2
 
 # Load the image
