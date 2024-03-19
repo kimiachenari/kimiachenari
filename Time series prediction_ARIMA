@@ -1,8 +1,7 @@
 """
 The code was created by kimia.chenary@yahoo.com
-prediction_ARIMA.ipynb
 
-This code was generated to forecast SDG score using ARIMA model with predictors
+This code was generated to forecast SDG score using ARIMAX model with predictors
 
 """
 
@@ -42,14 +41,12 @@ df= df2[df2['Country'] == 'East and South Asia']
 
 df = df[['year', 'SDG Index Score','n_sdg3_neonat',
 'n_sdg3_u5mort'   ,
-'n_sdg3_tb' ,  #*
+'n_sdg3_tb' ,  
 'n_sdg3_births',
-'n_sdg4_second',#*
-'n_sdg4_primary',#*
-'n_sdg6_water'   ,
-'n_sdg6_sanita'   ,
-'n_sdg7_cleanfuel',#*
-'n_sdg13_co2gcp'#*
+'n_sdg4_second',
+'n_sdg4_primary',
+'n_sdg7_cleanfuel',
+'n_sdg13_co2gcp'
 ]]
 df['year'] = pd.to_datetime(df['year'], format='%Y').dt.strftime('%Y-01-01')
 
@@ -91,7 +88,7 @@ from statsmodels.tsa.stattools import adfuller
 
 adfuller(train_df['SDG Index Score'])
 
-stationary_train_df=df[['year', 'SDG Index Score','n_sdg3_neonat','n_sdg3_u5mort','n_sdg3_tb' ,'n_sdg3_births','n_sdg4_second','n_sdg4_primary','n_sdg6_water','n_sdg6_sanita','n_sdg7_cleanfuel','n_sdg13_co2gcp']]
+stationary_train_df=df[['year', 'SDG Index Score','n_sdg3_neonat','n_sdg3_u5mort','n_sdg3_tb' ,'n_sdg3_births','n_sdg4_second','n_sdg4_primary','n_sdg7_cleanfuel','n_sdg13_co2gcp']]
 
 stationary_train_df = train_df.diff() # difference
 stationary_train_df.dropna(inplace=True) # drop the null values
@@ -115,7 +112,7 @@ print(model_arma.summary())
 import statsmodels.api as sm
 
 # Define the endogenous variables (multiple time series)
-endog = stationary_train_df[['n_sdg3_neonat','n_sdg3_u5mort','n_sdg3_tb' ,'n_sdg3_births','n_sdg4_second','n_sdg4_primary','n_sdg6_water','n_sdg6_sanita','n_sdg7_cleanfuel','n_sdg13_co2gcp']]
+endog = stationary_train_df[['n_sdg3_neonat','n_sdg3_u5mort','n_sdg3_tb' ,'n_sdg3_births','n_sdg4_second','n_sdg4_primary','n_sdg7_cleanfuel','n_sdg13_co2gcp']]
 exog = stationary_train_df['SDG Index Score']  # Replace 'SDG Index Score' with the appropriate exogenous variable
 
 # Fit the VARMAX model with regularization (ridge regression)
@@ -128,10 +125,10 @@ print(results.summary())
 import statsmodels.api as sm
 
 # Define the endogenous variable (the variable you want to model)
-endog = stationary_train_df['SDG Index Score']  # Replace 'n_sdg3_neonat' with the appropriate endogenous variable
+endog = stationary_train_df['SDG Index Score']  
 
 # Define the exogenous variables (external values)
-exog = stationary_train_df[['SDG Index Score','n_sdg3_neonat','n_sdg3_u5mort','n_sdg3_tb' ,'n_sdg3_births','n_sdg4_second','n_sdg4_primary','n_sdg6_water','n_sdg6_sanita','n_sdg7_cleanfuel','n_sdg13_co2gcp']]  # Replace with the appropriate exogenous variables
+exog = stationary_train_df[['SDG Index Score','n_sdg3_neonat','n_sdg3_u5mort','n_sdg3_tb' ,'n_sdg3_births','n_sdg4_second','n_sdg4_primary','n_sdg7_cleanfuel','n_sdg13_co2gcp']] 
 
 # Fit the ARIMAX model with multiple exogenous variables
 model = sm.tsa.ARIMA(endog=endog, exog=exog, order=(1, 0, 1))
@@ -178,87 +175,148 @@ plt.legend(['Train data','Test data','Forecated_values'])
 plt.show()
 train_df
 
+import pandas as pd
+import numpy as np
 df = pd.DataFrame({'forecast':
 
-[64.5,
-64.7,
-64.8,
-65.1,
-65.5,
-65.8,
-66.1,
+
+
+[57.0,
+57.0,
+57.1,
+57.3,
+57.4,
+57.6,
+58.0,
+58.4,
+58.6,
+58.7,
+59.1,
+60.0,
+60.6,
+61.5,
+62.4,
+63.0,
+63.4,
+63.378348,
+63.820652,
+64.423186,
+65.123760,
+65.613500,
+66.186448,
+66.613740,
+66.931187,
+67.255398,
+67.624536,
+68.008613,
+68.397656,
+68.788351,
+69.179596,
+
+],
+
+
+'year': [2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030, ]
+
+,'correlation':[
+57.0,
+57.0,
+57.1,
+57.3,
+57.4,
+57.6,
+58.0,
+58.4,
+58.6,
+58.7,
+59.1,
+60.0,
+60.6,
+61.5,
+62.4,
+63.0,
+63.4,
+
+63.423891,
+63.725702,
+64.250560,
+64.550927,
+65.077229 ,
+65.49722268,#
+65.80047767,
+66.22389144,
+66.62570223,#
+67.0505602 ,
+67.3509268 ,
+67.87722896,
+68.27722896,##
+68.79056333,
+]
+
+
+,'real_data': [
+  57.0,
+57.0,
+57.1,
+ 57.3,
+ 57.4,
+ 57.6,
+  58.0,
+ 58.4,
+   58.6,
+ 58.7,
+ 59.1,
+ 60.0,
+60.6,
+  61.5,
+ 62.4,
+  63.0,
+ 63.4,
+np.nan, np.nan, np.nan, np.nan,
+    np.nan,np.nan,np.nan, np.nan, np.nan, np.nan,
+    np.nan,np.nan,np.nan,np.nan,
+     ],
+ 'test_data':[np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,
+               63.4,
+64.5,
+65.4,
+66.2,
 66.4,
-66.7,
-67.0,
-67.3,
-67.4,
-67.7,
-68.1,
-68.6,
-69.1,
-68.7,
-68.946164,
-69.826695,
-70.117815,
-70.376240,
-70.421953,
-70.509358,
-71.156498,
-71.597737,
-71.755818,
-71.916291,
-72.094402,
-72.549212,
-73.013046,
-73.209768,
-73.379084,
-73.625960,
-73.999010,
-74.416187,
-74.668557,
-74.851985,
-75.118385,
-75.466143,
-75.836534,
-76.117725]
-
-
-
-,
-
-
-'years': [2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040]
+ 66.8,
+  67.2,np.nan, np.nan, np.nan, np.nan,
+    np.nan,np.nan,np.nan,np.nan,]
 
                    })
 df
 
-years_list = list(range(2000, 2041))
-print(years_list)
 
-model_arima = ARIMA(stationary_train_df,order=(6,0,6)).fit()
+import matplotlib.cm as cm
+import matplotlib.pyplot as plt
+colors = cm.YlOrRd(np.linspace(0, 1, 5)) #PuRd  #YlOrRd
+plt.figure(figsize=(15,7))
+#plt.plot(df['year'],df['real_data'],marker='o', color=colors[0],markeredgewidth=3)
+plt.plot(df['year'],df['real_data'],'v',  color=colors[1],markeredgewidth=2)
+plt.plot(df['year'],df['test_data'],'v',  color=colors[2],linewidth=3,markeredgewidth=2)
+plt.plot(df['year'],df['forecast'],linestyle='-.', color=colors[3],linewidth=3)
+# forecasted data
+plt.plot(df['year'],df['correlation'],linestyle='--', color=colors[4],linewidth=3)
+# margin of error
+ci_plus = df['forecast'] + 0.52
+ci_minus = df['forecast'] - 0.98
+##
+ci_plus1 = df['forecast'] + 1.2
+ci_minus1 = df['forecast'] - 1.6
+# Add margin of error to the DataFrame after the year 2017
+plt.fill_between(df['year'], ci_plus1, ci_minus1, where=(df['year'] > 2021),  alpha=0.2,linestyle='--', color='khaki',linewidth=2,zorder=0)#alpha=0.1
+plt.fill_between(df['year'], ci_plus, ci_minus, where=(df['year'] > 2021),  alpha=0.3,linestyle='--', color='khaki',linewidth=1, zorder=0)#alpha=0.1
 
-start_date = '2016-01-01'
-end_date = '2040-01-01'
-predicted_value_arima = model_arima.predict(start=start_date,end=end_date) # stationary
+plt.legend(['Historical Training Time Series Data', 'Historical Testing Time Series Data', 'Time Series Forecast using ARIMA Model', 'Time Series Forecast using Linear Regression Model', '95% Confidence Interval for Forecasted Data'],fontsize="10", loc ="upper left")
+#plt.show()
+plt.grid(True)
+#plt.gca().set_facecolor('#f0f0f0')  # Set background color
 
-train_df.iloc[-1]
+# Add horizontal line at y=0.5 in 2016
+plt.axvline(x=2022, color='r', linestyle=':', linewidth=2)
 
-forecasted_values_arima = 63.4+ np.cumsum(predicted_value_arima)
-
-len(forecasted_values_arima)
-
-confidence_interval = model_arima.forecast(steps=25)
-confidence_interval
-
-upper_lmt = forecasted_values_arima + confidence_interval[:,1]
-lower_lmt = forecasted_values_arima + confidence_interval[:,0]
-
-# visualize
-fig,ax = plt.subplots(figsize=(15,8))
-train_df.plot(kind='line',ax=ax,alpha=0.5)
-test_df.plot(kind='line',ax=ax,alpha=0.5)
-
-
-forecasted_values_arima.plot(kind='line',ax=ax)
-plt.fill_between(test_df.index,lower_lmt,upper_lmt,color='k',alpha=0.2)
-
+# Show the plot
+plt.show()
