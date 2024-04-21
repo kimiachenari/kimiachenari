@@ -1,7 +1,7 @@
 """
 The code was created by kimia.chenary@yahoo.com
 
-This code was generated to forecast global SDG score using Linear Regression which smooth by Holt multiplicative with predictors
+This code was generated to forecast global SDG score using Linear Regression smoothed by HW multiplicative  with predictors
 
 """
 
